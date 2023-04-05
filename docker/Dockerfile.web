@@ -17,6 +17,9 @@
 #
 
 FROM tomcat:9-jdk11-openjdk
+# UID and GID to give same ids to non-root user as in hop-server
+ARG UID=1000
+ARG GID=1000
 LABEL maintainer="Apache Hop Team"
 # path to where the artifacts should be deployed to
 ENV DEPLOYMENT_PATH=/usr/local/tomcat/webapps/ROOT
@@ -45,6 +48,9 @@ ENV HOP_ENVIRONMENT_NAME=environment1
 ENV HOP_ENVIRONMENT_CONFIG_FILE_NAME_PATHS=
 # hop run configuration to use
 
+# Create group and user to run under
+RUN addgroup -g ${GID} hop \
+  && adduser -D -s /bin/bash -h /home/hop -u ${UID} hop
 
 # Set TOMCAT start variables
 ENV CATALINA_OPTS='${HOP_OPTIONS} \
@@ -80,6 +86,10 @@ RUN  sed -i 's&lib/core/*&../../lib/*:WEB-INF/lib/*:lib/core/*&g' ${CATALINA_HOM
 RUN  sed -i 's&lib/core/*&../../lib/*:WEB-INF/lib/*:lib/core/*&g' ${CATALINA_HOME}/webapps/ROOT/hop-encrypt.sh
 RUN  sed -i 's&lib/core/*&../../lib/*:WEB-INF/lib/*:lib/core/*&g' ${CATALINA_HOME}/webapps/ROOT/hop-import.sh
 RUN  sed -i 's&lib/core/*&../../lib/*:WEB-INF/lib/*:lib/core/*&g' ${CATALINA_HOME}/webapps/ROOT/hop-search.sh
+
+RUN chown -R hop:hop ${CATALINA_HOME}
+
+USER hop
 
 RUN chmod +x ${CATALINA_HOME}/webapps/ROOT/*.sh
 

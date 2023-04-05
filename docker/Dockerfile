@@ -16,6 +16,9 @@
 # under the License.
 
 FROM alpine
+# UID:GID to specify uid and gid to use for user hop. Default values o 1000
+ARG UID=1000
+ARG GID=1000
 LABEL maintainer="Apache Hop Team"
 # path to where the artifacts should be deployed to
 ENV DEPLOYMENT_PATH=/opt/hop
@@ -105,7 +108,8 @@ RUN apk update \
   && rm -rf /var/cache/apk/* \
   && mkdir ${DEPLOYMENT_PATH} \
   && mkdir ${VOLUME_MOUNT_POINT} \
-  && adduser -D -s /bin/bash -h /home/hop hop \
+  && addgroup -g ${GID} hop \
+  && adduser -D -s /bin/bash -h /home/hop -G hop -u ${UID} hop \
   && chown hop:hop ${DEPLOYMENT_PATH} \
   && chown hop:hop ${VOLUME_MOUNT_POINT}
 
